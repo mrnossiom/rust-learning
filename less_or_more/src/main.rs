@@ -39,8 +39,8 @@ fn main() {
 	match game_succeed {
 		true => exit(0),
 		false => {
-			println!("Tu n'a pas trouvé en moins de 10 essais."),
+			println!("Tu n'a pas trouvé en moins de 10 essais.");
 			exit(1)
-		},
+		}
 	}
 }
