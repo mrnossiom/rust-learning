@@ -7,10 +7,10 @@ fn main() {
 	let mut game_succeed = false;
 	let number_to_guess = rand::thread_rng().gen_range(1, 101);
 
-	println!("Le nombre secret est {}", &number_to_guess);
+	// println!("Le nombre secret est {}", &number_to_guess);
 	println!("Entrez un nombre: ");
 
-	for _ in 1..11 {
+	for _ in 0..10 {
 		let mut supposition = String::new();
 
 		stdin()
@@ -38,6 +38,9 @@ fn main() {
 
 	match game_succeed {
 		true => exit(0),
-		false => exit(1),
+		false => {
+			println!("Tu n'a pas trouvé en moins de 10 essais."),
+			exit(1)
+		},
 	}
 }
