@@ -2,7 +2,8 @@ use minigrep::{run, Config};
 use std::{env, process};
 
 fn main() {
-	let args: Vec<String> = env::args().collect();
+	let mut args: Vec<String> = env::args().collect();
+	args.remove(0);
 
 	let config = Config::new(&args).unwrap_or_else(|err| {
 		eprintln!("Problem parsing arguments: {}", err);
@@ -10,7 +11,7 @@ fn main() {
 	});
 
 	if let Err(e) = run(config) {
-		eprintln!("Application error: {}", e);
+		eprintln!("minigrep error: {}", e);
 
 		process::exit(1)
 	}

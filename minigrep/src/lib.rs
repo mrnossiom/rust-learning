@@ -1,19 +1,29 @@
-use std::{env, error::Error, fs, io::ErrorKind};
-
+use atty::Stream;
+use std::{
+	env,
+	error::Error,
+	fs,
+	io::{stdin, ErrorKind, Read},
+};
 pub struct Config {
 	query: String,
-	filename: String,
+	filename: Option<String>,
 	case_sensitive: bool,
 }
 
 impl Config {
 	pub fn new(args: &[String]) -> Result<Config, &str> {
-		if args.len() < 3 {
-			return Err("not enough arguments");
+		if (args.len() < 1) | (args.len() > 2) {
+			return Err("you must supply 1 or 2 arguments");
 		}
 
-		let query = args[1].clone();
-		let filename = args[2].clone();
+		let query = args[0].clone();
+
+		let filename: Option<String> = if args.len() == 3 {
+			Some(args[2].clone())
+		} else {
+			None
+		};
 
 		let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
 
@@ -26,15 +36,7 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-	let content = match fs::read_to_string(&config.filename) {
-		Ok(file) => file,
-		Err(err) => match err.kind() {
-			ErrorKind::NotFound => {
-				panic!("File {:?} does not exist.", String::from(&config.filename))
-			}
-			other_error => panic!("An error occurred while reading file: {:?}", other_error),
-		},
-	};
+	let content = get_content(&config)?;
 
 	let results = if config.case_sensitive {
 		search(&config.query, &content)
@@ -47,6 +49,32 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 	}
 
 	Ok(())
+}
+
+fn get_content(config: &Config) -> Result<String, &str> {
+	let mut content = String::new();
+
+	if let Some(filename) = &config.filename {
+		content = match fs::read_to_string(&filename) {
+			Ok(file) => file,
+			Err(err) => match err.kind() {
+				ErrorKind::NotFound => {
+					panic!("File {:?} does not exist.", String::from(filename))
+				}
+				other_error => panic!("An error occurred while reading file: {:?}", other_error),
+			},
+		};
+	} else if !atty::is(Stream::Stdin) {
+		stdin()
+			.read_to_string(&mut content)
+			.expect("Error while reading from stdin");
+	} else {
+		return Err(
+			"you must supply content either by piping into the program or giving a file name",
+		);
+	}
+
+	Ok(content)
 }
 
 fn search<'a>(query: &str, content: &'a str) -> Vec<&'a str> {
