@@ -5,6 +5,7 @@ use std::{
 	fs,
 	io::{stdin, ErrorKind, Read},
 };
+
 pub struct Config {
 	query: String,
 	filename: Option<String>,
@@ -12,17 +13,24 @@ pub struct Config {
 }
 
 impl Config {
-	pub fn new(args: &[String]) -> Result<Config, &str> {
-		if (args.len() < 1) | (args.len() > 2) {
-			return Err("you must supply 1 or 2 arguments");
-		}
+	pub fn new(mut args: env::Args) -> Result<Config, &'static str> {
+		args.next();
 
-		let query = args[0].clone();
+		let query = match args.next() {
+			Some(argument) => argument,
+			None => return Err("didn't get a query string"),
+		};
 
-		let filename: Option<String> = if args.len() == 3 {
-			Some(args[2].clone())
-		} else {
-			None
+		let filename: Option<String> = match args.next() {
+			Some(argument) => Some(argument),
+			None => {
+				if atty::is(Stream::Stdin) {
+					return Err(
+						"you must supply content either by piping into the program or giving a file name",
+					);
+				};
+				None
+			}
 		};
 
 		let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
@@ -64,42 +72,29 @@ fn get_content(config: &Config) -> Result<String, &str> {
 				other_error => panic!("An error occurred while reading file: {:?}", other_error),
 			},
 		};
-	} else if !atty::is(Stream::Stdin) {
+	} else {
 		stdin()
 			.read_to_string(&mut content)
 			.expect("Error while reading from stdin");
-	} else {
-		return Err(
-			"you must supply content either by piping into the program or giving a file name",
-		);
-	}
+	};
 
 	Ok(content)
 }
 
 fn search<'a>(query: &str, content: &'a str) -> Vec<&'a str> {
-	let mut results = Vec::new();
-
-	for line in content.lines() {
-		if line.contains(query) {
-			results.push(line)
-		}
-	}
-
-	results
+	content
+		.lines()
+		.filter(|line| line.contains(query))
+		.collect()
 }
 
 fn search_case_insensitive<'a>(query: &str, content: &'a str) -> Vec<&'a str> {
 	let query = query.to_lowercase();
-	let mut results = Vec::new();
 
-	for line in content.lines() {
-		if line.to_lowercase().contains(&query) {
-			results.push(line)
-		}
-	}
-
-	results
+	content
+		.lines()
+		.filter(|line| line.to_lowercase().contains(&query))
+		.collect()
 }
 
 #[cfg(test)]
