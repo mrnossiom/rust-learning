@@ -1,21 +1,13 @@
+use inquire::Text;
 use rand::Rng;
-use std::cmp::Ordering;
-use std::io::stdin;
-use std::process::exit;
+use std::{cmp::Ordering, process::exit};
 
 fn main() {
 	let mut game_succeed = false;
 	let number_to_guess = rand::thread_rng().gen_range(1, 101);
 
-	// println!("Le nombre secret est {}", &number_to_guess);
-	println!("Entrez un nombre: ");
-
 	for _ in 0..10 {
-		let mut supposition = String::new();
-
-		stdin()
-			.read_line(&mut supposition)
-			.expect("Un problème est survenu");
+		let supposition = Text::new("Entrez un nombre:").prompt().unwrap();
 
 		let supposition: u32 = match supposition.trim().parse() {
 			Ok(number) => number,
