@@ -1,9 +1,8 @@
-use atty::Stream;
 use std::{
 	env,
 	error::Error,
 	fs,
-	io::{stdin, ErrorKind, Read},
+	io::{stdin, ErrorKind, IsTerminal, Read},
 };
 
 pub struct Config {
@@ -24,11 +23,12 @@ impl Config {
 		let filename: Option<String> = match args.next() {
 			Some(argument) => Some(argument),
 			None => {
-				if atty::is(Stream::Stdin) {
+				if stdin().is_terminal() {
 					return Err(
 						"you must supply content either by piping into the program or giving a file name",
 					);
 				};
+
 				None
 			}
 		};
@@ -63,7 +63,7 @@ fn get_content(config: &Config) -> Result<String, &str> {
 	let mut content = String::new();
 
 	if let Some(filename) = &config.filename {
-		content = match fs::read_to_string(&filename) {
+		content = match fs::read_to_string(filename) {
 			Ok(file) => file,
 			Err(err) => match err.kind() {
 				ErrorKind::NotFound => {

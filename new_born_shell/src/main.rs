@@ -17,7 +17,7 @@ fn main() {
 		let mut previous_command = None;
 
 		while let Some(command) = commands.next() {
-			let mut parts = command.trim().split_whitespace();
+			let mut parts = command.split_whitespace();
 			let command = parts.next().unwrap();
 			let args = parts;
 
@@ -26,7 +26,7 @@ fn main() {
 					let path = args.peekable().peek().map_or("/", |x| *x);
 					let absolute_path = Path::new(path);
 
-					if let Err(error) = env::set_current_dir(&absolute_path) {
+					if let Err(error) = env::set_current_dir(absolute_path) {
 						eprintln!("{}", error);
 					}
 

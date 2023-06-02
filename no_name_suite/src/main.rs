@@ -10,7 +10,7 @@ fn main() {
 	}
 }
 
-fn advance(base: &String) -> String {
+fn advance(base: &str) -> String {
 	let mut chars = base.chars().peekable();
 	let mut new = String::new();
 
