@@ -2,12 +2,9 @@ use fake::{Dummy, Fake};
 use indicatif::{ProgressBar, ProgressStyle};
 
 #[derive(Debug, PartialEq, Eq, Dummy)]
-struct Birthday(
-	#[dummy(faker = "1..=30")] pub u8,
-	#[dummy(faker = "1..=12")] pub u8,
-);
+struct Birthday(#[dummy(faker = "1..=365")] pub u16);
 
-const GROUPS_SIZE: u64 = 1_000_000;
+const GROUPS_SIZE: u64 = 1_000;
 const P50_SIZE: usize = 23;
 const P99_SIZE: usize = 57;
 
